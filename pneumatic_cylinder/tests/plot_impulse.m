@@ -1,13 +1,13 @@
 % plot impulse response
 function fig = plot_impulse()
     param = plant_param();
-    option = struct("Pe",(param.Pa+param.Ps)/2);
+    option = struct("qe",0,"Phe",(param.Pa+param.Ps)/2);
     sysc = plant_sysc(param,option);
 
     % initial response of linear model
     dt = 0.01;
     t = (0:dt:0.1)';
-    u = zeros(length(t),1); u(1) = 1/dt; % impulse input at dmdt_in
+    u = zeros(length(t),2); u(1) = 1/dt; % impulse input at dmdt_in
 
     % saturation
     ub = input_constraint(param.Ps,param.Pa,param);
@@ -16,7 +16,7 @@ function fig = plot_impulse()
     elseif u(1) < min(ub,0)
         u(1) = min(ub,0);
     end
-    % [~,~,x_sysc] = lsim(ss(sysc.A,sysc.B,sysc.C,sysc.D),u,t);
+    [~,~,x_sysc] = lsim(ss(sysc.A,sysc.B,sysc.C,sysc.D),u,t);
 
     % initial response of simscape and ode model
     simIn = Simulink.SimulationInput("simulation_impulse");
@@ -27,7 +27,7 @@ function fig = plot_impulse()
     fig = figure("Name","pneumatic_chamber impulse response (from dmdt_in to all states)"); hold on;
     p1 = plot(simOut.logsout.getElement("x_simscape").Values.*[1e3,1e3,1e-3,1e-3],"-r");
     p2 = plot(simOut.logsout.getElement("x_ode").Values.*[1e3,1e3,1e-3,1e-3],"--b");
-    % p3 = plot(t,x_sysc(:,:,1)/1e3,"-.k");
+    p3 = plot(t,x_sysc(:,:,1).*[1e3,1e3,1e-3,1e-3],"-.k");
 
     ax = gca; ax.FontSize = 12;
     xlabel("time (s)");

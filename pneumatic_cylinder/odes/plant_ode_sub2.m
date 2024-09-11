@@ -26,9 +26,12 @@ function dxdt = plant_ode_sub2(~,x,u,param)
     dmh_in = u(3);
     dmh_out = u(4);
 
+    % penalty force
+    Fp = -0.1*q/((q + L/2)*(q - L/2));
+
     dxdt = [
         dqdt;
-        (-D*dqdt + Ac*Pc - Ah*Ph - Ar*Pa - Fe)/(M + Me);
+        (-D*dqdt + Ac*Pc - Ah*Ph - Ar*Pa - Fe - Fp)/(M + Me);
         (R*Ta*(alpha_in*dmc_in - alpha_out*dmc_out) - alpha*Ac*Pc*dqdt)/(Vc0 + Ac*(0.5*L + q));
         (R*Ta*(alpha_in*dmh_in - alpha_out*dmh_out) + alpha*Ah*Ph*dqdt)/(Vh0 + Ah*(0.5*L - q));
         ];
