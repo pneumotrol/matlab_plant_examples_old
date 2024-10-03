@@ -171,16 +171,16 @@ P(t)
 
 ![initial state response](initial.png)
 
-where $`x(0) = [50 \times 10^3]^T`$, $`x_e = [(P_a + P_s)/2]^T`$, $`u_e = [0]^T`$.
+where $`x(0) = [50 \times 10^3]^T`$, $`x_e = [351.3 \times 10^3]^T`$, $`u_e = [0]^T`$.
 
 ### Impulse response (plot_impulse.m)
 
 ![impulse response](impulse.png)
 
-where $`x_e = [(P_a + P_s)/2]^T`$, $`u_e = [0]^T`$.
+where $`x_e = [351.3 \times 10^3]^T`$, $`u_e = [0]^T`$.
 
 ### Bode plot (plot_bode.m)
 
 ![bode plot](bode.png)
 
-where $`G(s) = P(s)/\mu(s)`$, $`x_e = [(P_a + P_s)/2]^T`$, $`u_e = [0]^T`$.
+where $`G(s) = P(s)/\mu(s)`$, $`x_e = [351.3 \times 10^3]^T`$, $`u_e = [0]^T`$.
