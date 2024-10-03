@@ -1,5 +1,5 @@
 % plot bode diagram from mass flow rate dmdt_in to pressure P
-function figs = plot_bode()
+function fig = plot_bode()
     param = plant_param();
     option = struct("Pe",(param.Pa+param.Ps)/2);
     sysc = plant_sysc(param,option);
@@ -42,7 +42,7 @@ function figs = plot_bode()
     end
 
     % from mass flow rate dmdt_in to pressure P
-    figs = figure("Name","pneumatic_chamber bode plot (from dmdt_in to P)");
+    fig = figure("Name","pneumatic_chamber bode plot (from dmdt_in to P)");
     plot_bode_sub(w_vec,H_simscape(:,1),H_ode(:,1),H_sysc(:,1));
 end
 
