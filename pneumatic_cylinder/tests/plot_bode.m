@@ -15,6 +15,12 @@ function figs = plot_bode()
     % frequency response of simscape and ode model
     H_simscape = zeros(length(w_vec),3);
     H_ode = zeros(length(w_vec),3);
+
+    simIn = Simulink.SimulationInput("plant_test");
+    simIn = simIn.setVariable("input_signal_type","sine");
+    simIn = simIn.setVariable("param",param);
+    simIn = simIn.setVariable("x0",sysc.xe);
+    simIn = simIn.setVariable("ue",sysc.ue).setVariable("xe",sysc.xe);
     for i = 1:length(w_vec)
         w = w_vec(i);
 
@@ -24,22 +30,25 @@ function figs = plot_bode()
         t_end = (N-1)*Ts; % simulation time (s)
         w_fft = (2*pi*((1:N/2)-1)/(N*Ts))'; % angular frequency vector (rad/s)
 
-        simIn = Simulink.SimulationInput("simulation_sine");
-        simIn = simIn.setVariable("x0",sysc.xe).setVariable("t_end",t_end).setVariable("Ts",Ts).setVariable("w",w);
-        simIn = simIn.setVariable("ue",sysc.ue).setVariable("xe",sysc.xe);
-        simOut = sim(simIn);
+        simIn = simIn.setVariable("Ts",Ts).setVariable("t_end",t_end).setVariable("w",w);
+
+        simIn = simIn.setVariable("plant_model_type","simscape");
+        simOut_simscape = sim(simIn);
+
+        simIn = simIn.setVariable("plant_model_type","ode");
+        simOut_ode= sim(simIn);
 
         for j = 1:4
             % frequency response of simscape
             H_simscape(i,j) = freqresp_at_w( ...
-                simOut.logsout.getElement("u").Values.Data, ...
-                simOut.logsout.getElement("x_simscape").Values.Data(:,j), ...
+                simOut_simscape.logsout.getElement("u").Values.Data(:,1), ...
+                simOut_simscape.logsout.getElement("x").Values.Data(:,j), ...
                 w,w_fft);
 
             % frequency response of ode
             H_ode(i,j) = freqresp_at_w( ...
-                simOut.logsout.getElement("u").Values.Data, ...
-                simOut.logsout.getElement("x_ode").Values.Data(:,j), ...
+                simOut_ode.logsout.getElement("u").Values.Data(:,1), ...
+                simOut_ode.logsout.getElement("x").Values.Data(:,j), ...
                 w,w_fft);
         end
     end

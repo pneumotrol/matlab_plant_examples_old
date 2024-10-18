@@ -4,20 +4,33 @@ function fig = plot_initial()
     option = struct("thetae",0);
     sysc = plant_sysc(param,option);
     x0 = [pi/12;0];
+    dt = 1e-3;
+    t_end = 10;
+
+    % set parameters
+    simIn = Simulink.SimulationInput("plant_test");
+    simIn = simIn.setVariable("input_signal_type","zero");
+    simIn = simIn.setVariable("param",param).setVariable("sysc",sysc);
+    simIn = simIn.setVariable("x0",x0 + sysc.xe);
+    simIn = simIn.setVariable("ue",sysc.ue).setVariable("xe",sysc.xe);
+    simIn = simIn.setVariable("dt",dt).setVariable("t_end",t_end);
+
+    % initial response of simscape model
+    simIn = simIn.setVariable("plant_model_type","simscape");
+    simOut_simscape = sim(simIn);
+
+    % initial response of ode model
+    simIn = simIn.setVariable("plant_model_type","ode");
+    simOut_ode = sim(simIn);
 
     % initial response of linear model
-    [~,t,x_sysc] = initial(ss(sysc.A,sysc.B,sysc.C,sysc.D),x0,10);
+    [~,t_sysc,x_sysc] = initial(ss(sysc.A,sysc.B,sysc.C,sysc.D),x0,t_end);
 
-    % initial response of simscape and ode model
-    simIn = Simulink.SimulationInput("simulation_initial");
-    simIn = simIn.setVariable("x0",sysc.xe+x0).setVariable("t_end",t(end));
-    simIn = simIn.setVariable("ue",sysc.ue).setVariable("xe",sysc.xe);
-    simOut = sim(simIn);
-
+    % plotting
     fig = figure("Name","pendulum initial response"); hold on;
-    p1 = plot(simOut.logsout.getElement("x_simscape").Values,"-r");
-    p2 = plot(simOut.logsout.getElement("x_ode").Values,"--b");
-    p3 = plot(t,x_sysc(:,:,1),"-.k");
+    p1 = plot(simOut_simscape.logsout.getElement("x").Values,"-r","LineWidth",1);
+    p2 = plot(simOut_ode.logsout.getElement("x").Values,"--b","LineWidth",1);
+    p3 = plot(t_sysc,x_sysc(:,:,1),"-.k","LineWidth",1);
 
     ax = gca; ax.FontSize = 12;
     xlabel("time (s)");

@@ -85,7 +85,7 @@ P_{cr} = \left( \frac{2}{\kappa + 1} \right)^{\frac{\kappa}{\kappa - 1}}
 V_c(t) &= V_{c0} + A_c \left( \frac{L}{2} + q(t) \right) \\
 V_h(t) &= V_{h0} + A_h \left( \frac{L}{2} - q(t) \right) \\
 \dot{V}_c(t) &= A_c \dot{q}(t) \\
-\dot{V}_h(t) &= A_h \dot{q}(t)
+\dot{V}_h(t) &= -A_h \dot{q}(t)
 \end{aligned}
 ```
 
