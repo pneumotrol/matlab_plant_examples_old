@@ -14,7 +14,7 @@ examples = [
     "water_tank";
     "water_tank_2DOF";
     "ball_beam";
-    % "pneumatic_chamber";
+    "pneumatic_chamber";
     % "pneumatic_cylinder";
     ];
 

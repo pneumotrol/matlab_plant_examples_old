@@ -15,3 +15,11 @@ function param = plant_param()
     param.V = 50e-6; % chamber volume (m^3)
     param.Vtube = pi*(2.5e-3/2)^2*10e-3; % tube volume (m^3)
 end
+
+% constants of ANR (Atmosphere Normale de Reference)
+function constants = ANR()
+    constants.R = 287;          % specific gas constant (J/Kg.K)
+    constants.k = 1.4;          % heat capacity ratio (-)
+    constants.T = 273.15 + 20;  % temperature (K)
+    constants.P = 101.3e3;      % pressure (Pa)
+end

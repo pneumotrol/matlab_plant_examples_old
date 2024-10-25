@@ -3,43 +3,51 @@ function fig = plot_bode()
     param = plant_param();
     option = struct("Pe",(param.Pa+param.Ps)/2);
     sysc = plant_sysc(param,option);
+    x0 = 0;
 
     % range of bode diagram
     w_vec = logspace(-2,2,51);
 
-    % frequency response of linear model
-    H_sysc = freqresp(ss(sysc.A,sysc.B,sysc.C,sysc.D),w_vec);
-    H_sysc = [squeeze(H_sysc(1,1,:))];
+    % frequency response
+    H_simscape = zeros(length(w_vec),1);
+    H_ode = zeros(length(w_vec),1);
 
-    % frequency response of simscape and ode model
-    H_simscape = zeros(length(w_vec),2);
-    H_ode = zeros(length(w_vec),2);
+    simIn = Simulink.SimulationInput("plant_test");
+    simIn = simIn.setVariable("input_signal_type","sine");
+    simIn = simIn.setVariable("x0",x0 + sysc.xe);
+    simIn = simIn.setVariable("ue",sysc.ue).setVariable("xe",sysc.xe);
+    simIn = simIn.setVariable("param",param).setVariable("sysc",sysc);
     for i = 1:length(w_vec)
         w = w_vec(i);
 
         % FFT settings
         N = 2048; % number of points (-)
-        Ts = (2*pi)/(100*w); % sampling period (s)
-        t_end = (N-1)*Ts; % simulation time (s)
-        w_fft = (2*pi*((1:N/2)-1)/(N*Ts))'; % angular frequency vector (rad/s)
+        dt = (2*pi)/(100*w); % sampling period (s)
+        t_end = (N-1)*dt; % simulation time (s)
+        w_fft = (2*pi*((1:N/2)-1)/(N*dt))'; % angular frequency vector (rad/s)
 
-        simIn = Simulink.SimulationInput("simulation_sine");
-        simIn = simIn.setVariable("x0",sysc.xe).setVariable("t_end",t_end).setVariable("Ts",Ts).setVariable("w",w);
-        simIn = simIn.setVariable("ue",sysc.ue).setVariable("xe",sysc.xe);
-        simOut = sim(simIn);
+        simIn = simIn.setVariable("dt",dt).setVariable("t_end",t_end).setVariable("w",w);
 
         % frequency response of simscape
+        simIn = simIn.setVariable("plant_model_type","simscape");
+        simOut_simscape = sim(simIn);
         H_simscape(i) = freqresp_at_w( ...
-            simOut.logsout.getElement("u").Values.Data, ...
-            simOut.logsout.getElement("x_simscape").Values.Data(:,1), ...
+            simOut_simscape.logsout.getElement("u").Values.Data, ...
+            simOut_simscape.logsout.getElement("x").Values.Data(:,1), ...
             w,w_fft);
 
         % frequency response of ode
+        simIn = simIn.setVariable("plant_model_type","ode");
+        simOut_ode = sim(simIn);
         H_ode(i) = freqresp_at_w( ...
-            simOut.logsout.getElement("u").Values.Data, ...
-            simOut.logsout.getElement("x_ode").Values.Data(:,1), ...
+            simOut_ode.logsout.getElement("u").Values.Data, ...
+            simOut_ode.logsout.getElement("x").Values.Data(:,1), ...
             w,w_fft);
     end
+
+    % frequency response of linear model
+    H_sysc = freqresp(ss(sysc.A,sysc.B,sysc.C,sysc.D),w_vec);
+    H_sysc = [squeeze(H_sysc(1,1,:))];
 
     % from mass flow rate dmdt_in to pressure P
     fig = figure("Name","pneumatic_chamber bode plot (from dmdt_in to P)");
