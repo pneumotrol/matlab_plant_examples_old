@@ -15,7 +15,7 @@ examples = [
     "water_tank_2DOF";
     "ball_beam";
     "pneumatic_chamber";
-    % "pneumatic_cylinder";
+    "pneumatic_cylinder";
     ];
 
 for i = 1:length(examples)

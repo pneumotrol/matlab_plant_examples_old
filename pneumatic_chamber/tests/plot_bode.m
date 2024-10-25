@@ -49,17 +49,17 @@ function fig = plot_bode()
     H_sysc = freqresp(ss(sysc.A,sysc.B,sysc.C,sysc.D),w_vec);
     H_sysc = [squeeze(H_sysc(1,1,:))];
 
-    % from mass flow rate dmdt_in to pressure P
-    fig = figure("Name","pneumatic_chamber bode plot (from dmdt_in to P)");
+    % from equivalent mass flow mu to pressure P
+    fig = figure("Name","pneumatic_chamber bode plot (from mu to P)");
     plot_bode_sub(w_vec,H_simscape(:,1),H_ode(:,1),H_sysc(:,1));
 end
 
 function plot_bode_sub(w_vec,H_simscape,H_ode,H_sysc)
     % magnitude
     subplot(2,1,1); hold on;
-    plot(w_vec,20*log10(abs(H_simscape)),"-r");
-    plot(w_vec,20*log10(abs(H_ode)),"--b");
-    plot(w_vec,20*log10(abs(H_sysc)),"-.k");
+    plot(w_vec,20*log10(abs(H_simscape)),"-r","LineWidth",1);
+    plot(w_vec,20*log10(abs(H_ode)),"--b","LineWidth",1);
+    plot(w_vec,20*log10(abs(H_sysc)),"-.k","LineWidth",1);
 
     ax = gca; ax.FontSize = 12; ax.XScale = "log";
     xlabel("frequency (rad/s)");
@@ -68,9 +68,9 @@ function plot_bode_sub(w_vec,H_simscape,H_ode,H_sysc)
 
     % phase
     subplot(2,1,2); hold on;
-    plot(w_vec,unwrap(angle(H_simscape))*180/pi,"-r");
-    plot(w_vec,unwrap(angle(H_ode))*180/pi,"--b");
-    plot(w_vec,unwrap(angle(H_sysc))*180/pi,"-.k");
+    plot(w_vec,unwrap(angle(H_simscape))*180/pi,"-r","LineWidth",1);
+    plot(w_vec,unwrap(angle(H_ode))*180/pi,"--b","LineWidth",1);
+    plot(w_vec,unwrap(angle(H_sysc))*180/pi,"-.k","LineWidth",1);
 
     ax = gca; ax.FontSize = 12; ax.XScale = "log";
     xlabel("frequency (rad/s)");

@@ -4,48 +4,45 @@ function figs = plot_bode()
     param = plant_param();
     option = struct("qe",0,"Phe",(param.Pa+param.Ps)/2);
     sysc = plant_sysc(param,option);
+    x0 = [0;0;0;0];
 
     % range of bode diagram
     w_vec = logspace(0,3,51);
 
-    % frequency response of linear model
-    H_sysc = freqresp(ss(sysc.A,sysc.B,sysc.C,sysc.D),w_vec);
-    H_sysc = [squeeze(H_sysc(1,1,:)),squeeze(H_sysc(2,1,:)),squeeze(H_sysc(3,1,:)),squeeze(H_sysc(4,1,:))];
-
-    % frequency response of simscape and ode model
-    H_simscape = zeros(length(w_vec),3);
-    H_ode = zeros(length(w_vec),3);
+    % frequency response
+    H_simscape = zeros(length(w_vec),1);
+    H_ode = zeros(length(w_vec),1);
 
     simIn = Simulink.SimulationInput("plant_test");
     simIn = simIn.setVariable("input_signal_type","sine");
-    simIn = simIn.setVariable("param",param);
-    simIn = simIn.setVariable("x0",sysc.xe);
+    simIn = simIn.setVariable("x0",x0 + sysc.xe);
     simIn = simIn.setVariable("ue",sysc.ue).setVariable("xe",sysc.xe);
+    simIn = simIn.setVariable("param",param).setVariable("sysc",sysc);
     for i = 1:length(w_vec)
         w = w_vec(i);
 
         % FFT settings
         N = 2048; % number of points (-)
-        Ts = (2*pi)/(100*w); % sampling period (s)
-        t_end = (N-1)*Ts; % simulation time (s)
-        w_fft = (2*pi*((1:N/2)-1)/(N*Ts))'; % angular frequency vector (rad/s)
+        dt = (2*pi)/(100*w); % sampling period (s)
+        t_end = (N-1)*dt; % simulation time (s)
+        w_fft = (2*pi*((1:N/2)-1)/(N*dt))'; % angular frequency vector (rad/s)
 
-        simIn = simIn.setVariable("Ts",Ts).setVariable("t_end",t_end).setVariable("w",w);
+        simIn = simIn.setVariable("dt",dt).setVariable("t_end",t_end).setVariable("w",w);
 
+        % frequency response of simscape
         simIn = simIn.setVariable("plant_model_type","simscape");
         simOut_simscape = sim(simIn);
-
-        simIn = simIn.setVariable("plant_model_type","ode");
-        simOut_ode= sim(simIn);
-
         for j = 1:4
-            % frequency response of simscape
             H_simscape(i,j) = freqresp_at_w( ...
                 simOut_simscape.logsout.getElement("u").Values.Data(:,1), ...
                 simOut_simscape.logsout.getElement("x").Values.Data(:,j), ...
                 w,w_fft);
+        end
 
-            % frequency response of ode
+        % frequency response of ode
+        simIn = simIn.setVariable("plant_model_type","ode");
+        simOut_ode = sim(simIn);
+        for j = 1:4
             H_ode(i,j) = freqresp_at_w( ...
                 simOut_ode.logsout.getElement("u").Values.Data(:,1), ...
                 simOut_ode.logsout.getElement("x").Values.Data(:,j), ...
@@ -53,29 +50,33 @@ function figs = plot_bode()
         end
     end
 
-    % from cap mass flow rate dmcdt_in to position q
-    figs(1) = figure("Name","pneumatic_cylinder bode plot (from dmcdt_in to q)");
+    % frequency response of linear model
+    H_sysc = freqresp(ss(sysc.A,sysc.B,sysc.C,sysc.D),w_vec);
+    H_sysc = [squeeze(H_sysc(1,1,:)),squeeze(H_sysc(2,1,:)),squeeze(H_sysc(3,1,:)),squeeze(H_sysc(4,1,:))];
+
+    % from equivalent cap mass flow mu_c to position q
+    figs(1) = figure("Name","pneumatic_cylinder bode plot (from mu_c to q)");
     plot_bode_sub(w_vec,H_simscape(:,1),H_ode(:,1),H_sysc(:,1));
 
-    % from cap mass flow rate dmcdt_in to speeed dqdt
-    figs(2) = figure("Name","pneumatic_cylinder bode plot (from dmcdt_in to dqdt)");
+    % from equivalent cap mass flow mu_c to speeed dqdt
+    figs(2) = figure("Name","pneumatic_cylinder bode plot (from mu_c to dqdt)");
     plot_bode_sub(w_vec,H_simscape(:,2),H_ode(:,2),H_sysc(:,2));
 
-    % from cap mass flow rate dmcdt_in to cap pressure Pc
-    figs(3) = figure("Name","pneumatic_cylinder bode plot (from dmcdt_in to Pc)");
+    % from equivalent cap mass flow mu_c to cap pressure Pc
+    figs(3) = figure("Name","pneumatic_cylinder bode plot (from mu_c to Pc)");
     plot_bode_sub(w_vec,H_simscape(:,3),H_ode(:,3),H_sysc(:,3));
 
-    % from cap mass flow rate dmcdt_in to head pressure Ph
-    figs(4) = figure("Name","pneumatic_cylinder bode plot (from dmcdt_in to Ph)");
+    % from equivalent cap mass flow mu_c to head pressure Ph
+    figs(4) = figure("Name","pneumatic_cylinder bode plot (from mu_c to Ph)");
     plot_bode_sub(w_vec,H_simscape(:,4),H_ode(:,4),H_sysc(:,4));
 end
 
 function plot_bode_sub(w_vec,H_simscape,H_ode,H_sysc)
     % magnitude
     subplot(2,1,1); hold on;
-    plot(w_vec,20*log10(abs(H_simscape)),"-r");
-    plot(w_vec,20*log10(abs(H_ode)),"--b");
-    plot(w_vec,20*log10(abs(H_sysc)),"-.k");
+    plot(w_vec,20*log10(abs(H_simscape)),"-r","LineWidth",1);
+    plot(w_vec,20*log10(abs(H_ode)),"--b","LineWidth",1);
+    plot(w_vec,20*log10(abs(H_sysc)),"-.k","LineWidth",1);
 
     ax = gca; ax.FontSize = 12; ax.XScale = "log";
     xlabel("frequency (rad/s)");
@@ -84,9 +85,9 @@ function plot_bode_sub(w_vec,H_simscape,H_ode,H_sysc)
 
     % phase
     subplot(2,1,2); hold on;
-    plot(w_vec,unwrap(angle(H_simscape))*180/pi,"-r");
-    plot(w_vec,unwrap(angle(H_ode))*180/pi,"--b");
-    plot(w_vec,unwrap(angle(H_sysc))*180/pi,"-.k");
+    plot(w_vec,unwrap(angle(H_simscape))*180/pi,"-r","LineWidth",1);
+    plot(w_vec,unwrap(angle(H_ode))*180/pi,"--b","LineWidth",1);
+    plot(w_vec,unwrap(angle(H_sysc))*180/pi,"-.k","LineWidth",1);
 
     ax = gca; ax.FontSize = 12; ax.XScale = "log";
     xlabel("frequency (rad/s)");

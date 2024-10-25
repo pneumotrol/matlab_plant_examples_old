@@ -4,8 +4,8 @@ function fig = plot_initial()
     option = struct("Pe",(param.Pa+param.Ps)/2);
     sysc = plant_sysc(param,option);
     x0 = 50e3;
-    dt = 1e-3;
-    t_end = 1;
+    dt = 1e-4;
+    t_end = 0.1;
 
     % set parameters
     simIn = Simulink.SimulationInput("plant_test");
@@ -28,13 +28,13 @@ function fig = plot_initial()
 
     % plotting
     fig = figure("Name","pneumatic_chamber initial response"); hold on;
-    p1 = plot(simOut_simscape.logsout.getElement("x").Values,"-r","LineWidth",1);
-    p2 = plot(simOut_ode.logsout.getElement("x").Values,"--b","LineWidth",1);
-    p3 = plot(t_sysc,x_sysc(:,:,1),"-.k","LineWidth",1);
+    p1 = plot(simOut_simscape.logsout.getElement("x").Values*diag(1e-3),"-r","LineWidth",1);
+    p2 = plot(simOut_ode.logsout.getElement("x").Values*diag(1e-3),"--b","LineWidth",1);
+    p3 = plot(t_sysc,x_sysc(:,:,1)*diag(1e-3),"-.k","LineWidth",1);
 
     ax = gca; ax.FontSize = 12;
     xlabel("time (s)");
     ylabel("state");
     legend([p1(1),p2(1),p3(1)],["simscape","ode","sysc"]);
-    ylim([param.Pa;param.Ps]-param.Pa);
+    ylim([0;500]);
 end

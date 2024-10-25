@@ -4,8 +4,8 @@ function fig = plot_impulse()
     option = struct("Pe",(param.Pa+param.Ps)/2);
     sysc = plant_sysc(param,option);
     x0 = 0;
-    dt = 1e-3;
-    t_end = 1;
+    dt = 1e-4;
+    t_end = 0.1;
 
     % set parameters
     simIn = Simulink.SimulationInput("plant_test");
@@ -27,10 +27,10 @@ function fig = plot_impulse()
     [~,t_sysc,x_sysc] = impulse(ss(sysc.A,sysc.B,sysc.C,sysc.D),t_end);
 
     % plotting
-    fig = figure("Name","pneumatic_chamber impulse response (from dmdt_in to all states)"); hold on;
-    p1 = plot(simOut_simscape.logsout.getElement("x").Values,"-r","LineWidth",1);
-    p2 = plot(simOut_ode.logsout.getElement("x").Values,"--b","LineWidth",1);
-    p3 = plot(t_sysc,x_sysc(:,:,1)/1e6,"-.k","LineWidth",1);
+    fig = figure("Name","pneumatic_chamber impulse response (from mu to all states)"); hold on;
+        p1 = plot(simOut_simscape.logsout.getElement("x").Values*diag(1e-3),"-r","LineWidth",1);
+        p2 = plot(simOut_ode.logsout.getElement("x").Values*diag(1e-3),"--b","LineWidth",1);
+        p3 = plot(t_sysc,x_sysc(:,:,1)/1e6*diag(1e-3),"-.k","LineWidth",1);
 
     ax = gca; ax.FontSize = 12;
     xlabel("time (s)");

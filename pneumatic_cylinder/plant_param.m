@@ -29,3 +29,11 @@ function param = plant_param()
     param.Vctube = pi*(2.5e-3/2)^2*10e-3; % tube volume of cap side (m^3)
     param.Vhtube = pi*(2.5e-3/2)^2*10e-3; % tube volume of head side (m^3)
 end
+
+% constants of ANR (Atmosphere Normale de Reference)
+function constants = ANR()
+    constants.R = 287;          % specific gas constant (J/Kg.K)
+    constants.k = 1.4;          % heat capacity ratio (-)
+    constants.T = 273.15 + 20;  % temperature (K)
+    constants.P = 101.3e3;      % pressure (Pa)
+end
